@@ -1,7 +1,14 @@
-### Remplir le fichier de configuration avec un json
+
+### installer sur votre ordinateur le serveur Ollama
+    ## télécharger le LLM de mistral de manière à ce que les requêtes finales restent en interne
+    ## Lancer le server Ollama avec mistral
+
+### à la racine du projet créer un dossier config
+
+### Remplir le fichier de configuration config.json et l'enregistrer dans le dossier config
 {
   "IMAC_CONNECTION_STRING": "",
-  "DATA_PATH": "./data",
+  "DATA_PATH": "./data-xxx",
   "DB_HOST": "",
   "DB_PORT": 5432,
   "DB_USER": "",
@@ -9,11 +16,16 @@
   "DB_NAME": "postgres"
 }
 
+### la base vectorielle sear crée sur un serveur Postgresql min 14
+    ## le programme se charge de créer la base si elle n'existe pas
+    ## et de rajouter l'extension vector
+    ## enfin de générer une table embeddings avecles champs définis ci-après
+
 ### populate.py:
- ## liste les fichiers trouvés dans data
+ ## liste les fichiers trouvés dans le dossier data spécifié dans le fichier de conf
  ## liste les pdf déjà importés dans la base
  ## calcule la liste restreinte des nouveaux pdf à importer
- ## calcul l'embedding de ces fichiers et les index pour l'import
+ ## calcul l'embedding de ces fichiers et calcule les index pour l'import
     # le nom du pdf
     # le type de document :  compte-rendu, notice, ordonnances, ...( liste à fournir)
     # l'index ids = numéro de page du pdf "." numéro du chunk de cette page ( utile pour sortir les sources )
