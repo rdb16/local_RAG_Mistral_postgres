@@ -1,7 +1,10 @@
 
 ### installer sur votre ordinateur le serveur Ollama
-    ## télécharger le LLM de mistral de manière à ce que les requêtes finales restent en interne
-    ## Lancer le server Ollama avec mistral
+    ## télécharger le LLM de mistral ou llama3, de manière à ce que les traitements restent en interne
+### Pour l'embedding le choix se fait avec le fichier get_embedding_function.py
+    ## soit utiliser le modèle d'embeddings d"AWS titan ou autre moteur d'embedding
+    ## soit un modèle local
+
 
 ### à la racine du projet créer un dossier config
 
@@ -13,10 +16,11 @@
   "DB_PORT": 5432,
   "DB_USER": "",
   "DB_PASS": "",
-  "DB_NAME": "postgres"
+  "DB_NAME": "postgres",
+  ......
 }
 
-### la base vectorielle sera crée sur un serveur Postgresql >= 14
+### la base vectorielle sera crée sur un serveur Postgresql version >= 14
     ## le programme se charge de créer la base si elle n'existe pas
     ## et de rajouter l'extension vector
     ## enfin de générer une table embeddings avec les champs définis ci-après
@@ -38,12 +42,16 @@
  le moteur d'embeddings fournit par AWS et qui est payant.
  Il faut donc avoir à la racine de son Home le dossier .aws avec profil et credentials.
  Ne pas oublier de demander l'accès dans bedrock à ce modèle de fondation.
+
  Pour la recherche vectorielle, il est nécessaire de générer le vecteur de la question avec le même moteur
  d'embeddings que celui qui a utilisé pour nourrir la base.
+
  Le modèle de fondation d'embeddings utilisé par défaut par langchain_community.embeddings.bedrock
  dans la région us-east-1 est le modèle "Amazon Titan Embeddings G1 - Text", dont l'identifiant de base
             est amazon.titan-embed-text-v1.
  Ce modèle est conçu pour des tâches telles que la récupération de texte, la similarité sémantique
  et le clustering, avec une longueur maximale de texte d'entrée de 8 000 tokens
  et une longueur maximale de vecteur de sortie de 1 536 dimensions.
+
+
 
