@@ -29,6 +29,8 @@ def check_db(conf: dict, dbname: str) -> bool:
 
 def check_db_extension(conf: dict, dbname: str) -> bool:
     connection_string = conf['IMAC_CONNECTION_STRING'] + dbname
+    # DEBUG
+    print("connecting to", connection_string)
     conn = pg.connect(connection_string)
     cur = conn.cursor()
     try:
@@ -59,7 +61,7 @@ def create_db(conf: dict, dbname: str) -> bool:
         conn.close()
 
 
-def create_table(conf: dict, dbname: str) -> bool:
+def create_chunks_table(conf: dict, dbname: str) -> bool:
     connection_string = conf['IMAC_CONNECTION_STRING'] + dbname
     conn = pg.connect(connection_string)
     cur = conn.cursor()
@@ -67,8 +69,8 @@ def create_table(conf: dict, dbname: str) -> bool:
         table_create_command = """
                 CREATE TABLE IF NOT EXISTS embeddings (
                     id bigserial primary key,
-                    pdf_name text,
-                    document_type text,
+                    fk_pdf_file bigserial not null,                    
+                    document_type text default 'NONE',
                     ids text,
                     content text,
                     tokens integer,
@@ -86,8 +88,51 @@ def create_table(conf: dict, dbname: str) -> bool:
         conn.close()
 
 
-def general(conf: dict, dbname: str) -> bool:
+def create_pdf_table(conf: dict, dbname: str) -> bool:
+    connection_string = conf['IMAC_CONNECTION_STRING'] + dbname
+    conn = pg.connect(connection_string)
+    cur = conn.cursor()
+    try:
+        table_create_command = """
+                CREATE TABLE IF NOT EXISTS pdf_file (
+                    id bigserial primary key,
+                    file_name text not null,                    
+                    document_type text default 'None',
+                    file_date text,
+                    sha1 text                    
+                    );
+                            """
+        cur.execute(table_create_command)
+        conn.commit()
+        return True
+    except pg.Error as e:
+        print("ERROR : ", e)
+        return False
+    finally:
+        cur.close()
+        conn.close()
 
+
+def insert_into_pdf(conf: dict, dbname: str, values: dict):
+    connection_string = conf['IMAC_CONNECTION_STRING'] + dbname
+    conn = pg.connect(connection_string)
+    cur = conn.cursor()
+    try:
+        table_insert_command = """
+        INSERT INTO pdf_file (file_name, document_type, file_date, sha1) 
+        VALUES (values["file_name"], values["document_type"], values["file_date"], values["sha1"])
+        
+        """
+
+    except pg.Error as e:
+        print("ERROR : ", e)
+        return False
+    finally:
+        cur.close()
+        conn.close()
+
+
+def general(conf: dict, dbname: str) -> bool:
     # Vérif que la base existe sinon la créer
     result = check_db(conf, dbname)
     if result:
@@ -116,5 +161,3 @@ def general(conf: dict, dbname: str) -> bool:
     else:
         print("La table embeddings n'a pa pu être crée, on sort")
         exit(1)
-
-
