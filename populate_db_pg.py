@@ -19,8 +19,10 @@ from get_embedding_function import get_embedding_function
 from langchain_community.vectorstores.chroma import Chroma
 from utils import load_env
 from utils import check_pg
+from utils.check_pg import insert_into_pdf_file
 from utils.pdf_list import get_pdf_from_data, get_pdf_list_from_db, get_filtered_list
 from utils import spliter
+from utils import pdf_date_and_sha1 as pdf_metadata
 
 
 def main():
@@ -89,6 +91,19 @@ def main():
     pdf_data_list = get_pdf_from_data(data_path)
     pdf_pg_list = get_pdf_list_from_db(conf, dbname)
     file_to_import = get_filtered_list(pdf_pg_list, pdf_data_list)
+    print("Nombre de fichiers à importer :", len(file_to_import))
+
+    # import dans la table pdf_file
+    for file in file_to_import:
+        path_file= os.path.join(data_path, file)
+        file_date, sha1 = pdf_metadata.get_pdf_details(path_file)
+        data_dico = {"file_name": file,
+                     "file_date": file_date,
+                     "document_type": "test",
+                     "sha1": sha1
+                     }
+        print(data_dico)
+        result = insert_into_pdf_file(conf, dbname, data_dico)
 
     # on va copier tous les pdf à traiter dans ce répertoire
     tmp_dir = Path("./tmp")

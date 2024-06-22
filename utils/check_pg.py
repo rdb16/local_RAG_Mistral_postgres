@@ -8,7 +8,7 @@ def check_pg(conf: dict) -> bool:
     try:
         pg.connect(connection_string)
         return True
-    except pg.Error as e:
+    except pg.Error:
         return False
 
 
@@ -98,7 +98,7 @@ def create_pdf_table(conf: dict, dbname: str) -> bool:
                     id bigserial primary key,
                     file_name text not null,                    
                     document_type text default 'None',
-                    file_date text,
+                    file_date timestamp not null,
                     sha1 text                    
                     );
                             """
@@ -113,16 +113,19 @@ def create_pdf_table(conf: dict, dbname: str) -> bool:
         conn.close()
 
 
-def insert_into_pdf(conf: dict, dbname: str, values: dict):
+def insert_into_pdf_file(conf: dict, dbname: str, values: dict):
     connection_string = conf['IMAC_CONNECTION_STRING'] + dbname
     conn = pg.connect(connection_string)
     cur = conn.cursor()
     try:
-        table_insert_command = """
+        table_insert_command = f"""
         INSERT INTO pdf_file (file_name, document_type, file_date, sha1) 
-        VALUES (values["file_name"], values["document_type"], values["file_date"], values["sha1"])
+        VALUES ('{values["file_name"]}', '{values["document_type"]}', '{values["file_date"]}', '{values["sha1"]}')
         
         """
+        cur.execute(table_insert_command)
+        conn.commit()
+        return True
 
     except pg.Error as e:
         print("ERROR : ", e)
@@ -132,7 +135,7 @@ def insert_into_pdf(conf: dict, dbname: str, values: dict):
         conn.close()
 
 
-def general(conf: dict, dbname: str) -> bool:
+def general(conf: dict, dbname: str):
     # Vérif que la base existe sinon la créer
     result = check_db(conf, dbname)
     if result:
@@ -155,7 +158,7 @@ def general(conf: dict, dbname: str) -> bool:
         exit(1)
 
     # vérifie que la table a été crée sinon la crée
-    result = create_table(conf, dbname)
+    result = create_chunks_table(conf, dbname)
     if result:
         print("La table embeddings existe.")
     else:

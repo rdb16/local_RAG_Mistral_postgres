@@ -10,7 +10,7 @@ def get_pdf_list_from_db(conf: dict, db: str) -> list:
     cur = conn.cursor()
     pdf_list = []
     try:
-        cur.execute("SELECT pdf_name FROM embeddings WHERE pdf_name IS NOT NULL")
+        cur.execute("SELECT file_name FROM pdf_file WHERE file_name IS NOT NULL")
         _list = cur.fetchall()
         for item in _list:
             pdf_list.append(item[0])
