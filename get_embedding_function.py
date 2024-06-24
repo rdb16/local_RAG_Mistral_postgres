@@ -26,7 +26,7 @@ def get_embedding_function(region):
     else:
         embeddings = OllamaEmbeddings(
             model="llama3",
-            base_url="http://localhost:11434"
+            base_url="http://localhost:11434" # vecteur 4096
         )
 
     return embeddings

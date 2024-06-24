@@ -7,7 +7,7 @@ from pathlib import Path
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
-
+import time
 import psycopg
 from psycopg import OperationalError
 import ast
@@ -19,13 +19,14 @@ from get_embedding_function import get_embedding_function
 from langchain_community.vectorstores.chroma import Chroma
 from utils import load_env
 from utils import check_pg
-from utils.check_pg import insert_into_pdf_file
+from utils.insert_into_db import insert_pdf_file
 from utils.pdf_list import get_pdf_from_data, get_pdf_list_from_db, get_filtered_list
 from utils import spliter
 from utils import pdf_date_and_sha1 as pdf_metadata
 
 
 def main():
+    start_time = time.time()
     ###############################################################################
     # Setup your database to insert embeddings
     ###############################################################################
@@ -76,14 +77,14 @@ def main():
     # on crée la table embeddings si elle n'existe pas
     result = check_pg.create_chunks_table(conf, dbname)
     if result:
-        print(f'la table embeddings a été crée dans la base {dbname}')
+        print(f'la table embeddings est dans la base {dbname}')
     else:
         print(f'impossible de créer la table embeddings, on sort')
         exit(1)
 
     result = check_pg.create_pdf_table(conf, dbname)
     if result:
-        print(f'la table embeddings a été crée dans la base {dbname}')
+        print(f'la table pdf_file est dans la base {dbname}')
     else:
         print(f'impossible de créer la table pdf_file, on sort')
         exit(1)
@@ -93,9 +94,17 @@ def main():
     file_to_import = get_filtered_list(pdf_pg_list, pdf_data_list)
     print("Nombre de fichiers à importer :", len(file_to_import))
 
+    if len(file_to_import) == 0:
+        print("Rien à importer on sort")
+        end_time = time.time()
+        duration = (end_time - start_time) * 1000
+        print("duration en ms: ", int(duration))
+        exit(0)
+
     # import dans la table pdf_file
+    import_dico: dict = {}
     for file in file_to_import:
-        path_file= os.path.join(data_path, file)
+        path_file = os.path.join(data_path, file)
         file_date, sha1 = pdf_metadata.get_pdf_details(path_file)
         data_dico = {"file_name": file,
                      "file_date": file_date,
@@ -103,7 +112,10 @@ def main():
                      "sha1": sha1
                      }
         print(data_dico)
-        result = insert_into_pdf_file(conf, dbname, data_dico)
+        fk_pdf = insert_pdf_file(conf, dbname, data_dico)
+        import_dico[file] = fk_pdf
+
+    print("fk_dico: ", import_dico)
 
     # on va copier tous les pdf à traiter dans ce répertoire
     tmp_dir = Path("./tmp")
@@ -123,23 +135,44 @@ def main():
             shutil.copy(file, destination)
     print("Les pdfs sont dans tmp, on lance le calcul de leur embedding")
 
+    # engine
+    embed_engine = get_embedding_function(conf["EMBEDDINGS_ENGINE"])
+
     documents = PyPDFDirectoryLoader(data_path).load()
     chunks = spliter.split_documents(documents)
-    print(" chunk0: ", chunks[0])
-    print(" chunk type: ", chunks[0].type)
+    # print(" chunk0: ", chunks[0])
+    # print(" chunk type: ", chunks[0].type)
+
+    # connection
+    conn_string = conf['IMAC_CONNECTION_STRING'] + dbname
+    conn = psycopg.connect(conn_string)
+
     # Calculate Page IDs.
     chunks_with_ids = chunk_ids.calculate(chunks)
     for chunk in chunks_with_ids:
-        print("ids: ", chunk.metadata["id"])
-
-    conn_string = conf['IMAC_CONNECTION_STRING'] + dbname
-    conn = psycopg.connect(conn_string)
-    # Register the vector type with psycopg2
-    register_vector(conn)
-
+        ids = chunk.metadata["id"]
+        content = chunk.page_content
+        pdf_name = chunk.metadata["source"].split("/")[1]
+        fk_pdf = import_dico[pdf_name]
+        print("file_name", pdf_name, "fk: ", fk_pdf)
+        txt = chunk.page_content
+        vector = embed_engine.embed_query(txt)
+        tokens = len(vector)
+        print("tokens", tokens)
+        statement = """
+            INSERT INTO embeddings (fk_pdf_file, ids, content, tokens, embedding)
+            VALUES (%s, %s, %s, %s, %s)    
+        """
+        values = (fk_pdf, ids, content, tokens, vector)
+        print(statement)
+        conn.execute(statement, values)
+        conn.commit()
     conn.close()
 
     ###############################################################################
+    end_time = time.time()
+    duration = (end_time - start_time) * 1000
+    print("duration en ms: ", int(duration))
 
 
 if __name__ == '__main__':

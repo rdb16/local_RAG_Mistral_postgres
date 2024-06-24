@@ -19,6 +19,8 @@ known_texts = [
     "Votre texte ici"
 ]
 text_embeddings = {txt: ollama_emb.embed_query(txt) for txt in known_texts}
+print(text_embeddings)
+exit(0)
 
 
 # Trouver le texte correspondant à un embedding donné

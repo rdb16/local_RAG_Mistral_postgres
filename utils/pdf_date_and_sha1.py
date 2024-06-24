@@ -28,6 +28,7 @@ def get_pdf_details(file_path):
     except Exception as e:
         return creation_date, f"Error calculating SHA1: {str(e)}"
 
+    print("creation_date", creation_date)
     format_date = parse_pdf_date.parse(creation_date)
 
     return format_date, sha1_hexdigest

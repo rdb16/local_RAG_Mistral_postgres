@@ -65,16 +65,21 @@ def create_chunks_table(conf: dict, dbname: str) -> bool:
     connection_string = conf['IMAC_CONNECTION_STRING'] + dbname
     conn = pg.connect(connection_string)
     cur = conn.cursor()
+    if conf["EMBEDDINGS_ENGINE"] == "us-east-1":
+        dim = 1536
+    elif conf["EMBEDDINGS_ENGINE"] == "eu-west-2":
+        dim = 1024
+    else:
+        dim = 4096
     try:
-        table_create_command = """
+        table_create_command = f"""
                 CREATE TABLE IF NOT EXISTS embeddings (
                     id bigserial primary key,
                     fk_pdf_file bigserial not null,                    
-                    document_type text default 'NONE',
                     ids text,
                     content text,
                     tokens integer,
-                    embedding vector(1536)
+                    embedding vector({dim})
                     );
                             """
         cur.execute(table_create_command)
@@ -112,27 +117,6 @@ def create_pdf_table(conf: dict, dbname: str) -> bool:
         cur.close()
         conn.close()
 
-
-def insert_into_pdf_file(conf: dict, dbname: str, values: dict):
-    connection_string = conf['IMAC_CONNECTION_STRING'] + dbname
-    conn = pg.connect(connection_string)
-    cur = conn.cursor()
-    try:
-        table_insert_command = f"""
-        INSERT INTO pdf_file (file_name, document_type, file_date, sha1) 
-        VALUES ('{values["file_name"]}', '{values["document_type"]}', '{values["file_date"]}', '{values["sha1"]}')
-        
-        """
-        cur.execute(table_insert_command)
-        conn.commit()
-        return True
-
-    except pg.Error as e:
-        print("ERROR : ", e)
-        return False
-    finally:
-        cur.close()
-        conn.close()
 
 
 def general(conf: dict, dbname: str):
