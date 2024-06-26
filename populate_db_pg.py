@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 from langchain_community.document_loaders import PyPDFDirectoryLoader
+from PyPDF2.errors import PdfReadError
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain.schema.document import Document
 import time
@@ -15,14 +16,14 @@ import pgvector
 import math
 from pgvector.psycopg import register_vector
 from utils import load_env, chunk_ids
-from get_embedding_function import get_embedding_function
-from langchain_community.vectorstores.chroma import Chroma
+from embedding_function import get_embedding_function
 from utils import load_env
 from utils import check_pg
 from utils.insert_into_db import insert_pdf_file
 from utils.pdf_list import get_pdf_from_data, get_pdf_list_from_db, get_filtered_list
 from utils import spliter
 from utils import pdf_date_and_sha1 as pdf_metadata
+from utils import db_name
 
 
 def main():
@@ -41,8 +42,7 @@ def main():
 
     # check db
     # la base pg sera nommée comme le data_path en remplaçant data par base
-
-    dbname = data_path.replace("./data-", "base_")
+    dbname = db_name.get_name(conf)
 
     # vérif que la base pg est installée
     result = check_pg.check_pg(conf)
@@ -111,7 +111,7 @@ def main():
                      "document_type": "test",
                      "sha1": sha1
                      }
-        print(data_dico)
+        # print(data_dico)
         fk_pdf = insert_pdf_file(conf, dbname, data_dico)
         import_dico[file] = fk_pdf
 
@@ -138,10 +138,12 @@ def main():
     # engine
     embed_engine = get_embedding_function(conf["EMBEDDINGS_ENGINE"])
 
-    documents = PyPDFDirectoryLoader(data_path).load()
-    chunks = spliter.split_documents(documents)
-    # print(" chunk0: ", chunks[0])
-    # print(" chunk type: ", chunks[0].type)
+    chunks = None
+    try:
+        documents = PyPDFDirectoryLoader(tmp_dir).load()
+        chunks = spliter.split_documents(documents)
+    except PdfReadError as e:
+        print(e)
 
     # connection
     conn_string = conf['IMAC_CONNECTION_STRING'] + dbname
@@ -159,10 +161,12 @@ def main():
         vector = embed_engine.embed_query(txt)
         tokens = len(vector)
         print("tokens", tokens)
+
         statement = """
             INSERT INTO embeddings (fk_pdf_file, ids, content, tokens, embedding)
             VALUES (%s, %s, %s, %s, %s)    
         """
+
         values = (fk_pdf, ids, content, tokens, vector)
         print(statement)
         conn.execute(statement, values)
@@ -172,7 +176,7 @@ def main():
     ###############################################################################
     end_time = time.time()
     duration = (end_time - start_time) * 1000
-    print("duration en ms: ", int(duration))
+    print("durée écoulée en ms: ", int(duration))
 
 
 if __name__ == '__main__':

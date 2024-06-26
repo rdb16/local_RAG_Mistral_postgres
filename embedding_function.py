@@ -16,12 +16,12 @@ def get_embedding_function(region):
             region_name="eu-west-2",
             model_id="amazon.titan-embed-text-v2:0")  # vecteur 1024
 
-    # elif region == "eu-west-3":
-    #     embeddings = BedrockEmbeddings(
-    #         credentials_profile_name="bedrock_user",
-    #         region_name="eu-west-2",
-    #         model="amazon.titan-embed-text-v2:0"
-    # )
+    elif region == "eu-west-3":
+        embeddings = BedrockEmbeddings(
+            credentials_profile_name="bedrock_user",
+            region_name="eu-west-3",
+            model_id="cohere.embed-multilingual-v3"
+    )
 
     else:
         embeddings = OllamaEmbeddings(

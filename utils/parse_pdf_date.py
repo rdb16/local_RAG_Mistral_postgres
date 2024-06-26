@@ -9,18 +9,18 @@ def parse(pdf_date_string):
 
         datetime_part = pdf_date_string[:14]
         timezone_part = pdf_date_string[15:]
-        print("datetime_part: ", datetime_part, ", timezone_part: ", timezone_part)
+        # print("datetime_part: ", datetime_part, ", timezone_part: ", timezone_part)
 
         # Parse datetime_part
         naive_date = datetime.strptime(datetime_part, "%Y%m%d%H%M%S")
-        print("naive_date: ", naive_date)
+        # print("naive_date: ", naive_date)
 
         # Parse timezone offset
         sign = -1 if timezone_part[0] == '-' else 1
         hours_offset = int(timezone_part[0:2])
-        print("hours_offset: ", hours_offset)
+        # print("hours_offset: ", hours_offset)
         minutes_offset = int(timezone_part[4:6].replace("'", ""))
-        print("minutes_offset: ", minutes_offset)
+        # print("minutes_offset: ", minutes_offset)
 
         # # Vérifiez que l'offset est dans une plage valide
         # if abs(hours_offset) > 14 or abs(minutes_offset) > 59:
@@ -28,11 +28,11 @@ def parse(pdf_date_string):
 
         # Calcul de l'offset total en minutes
         total_minutes = sign * (hours_offset * 60 + minutes_offset)
-        print("total_minutes: ", total_minutes)
+        # print("total_minutes: ", total_minutes)
 
         # Créer la timezone
         timezone = pytz.FixedOffset(total_minutes)
-        print("timezone: ", timezone)
+        # print("timezone: ", timezone)
         # Parser la date et l'heure sans l'offset
         # Appliquer la timezone
         local_date = naive_date.replace(tzinfo=timezone)

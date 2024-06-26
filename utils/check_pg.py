@@ -69,6 +69,8 @@ def create_chunks_table(conf: dict, dbname: str) -> bool:
         dim = 1536
     elif conf["EMBEDDINGS_ENGINE"] == "eu-west-2":
         dim = 1024
+    elif conf["EMBEDDINGS_ENGINE"] == "eu-west-3":
+        dim = 1024
     else:
         dim = 4096
     try:
@@ -118,7 +120,6 @@ def create_pdf_table(conf: dict, dbname: str) -> bool:
         conn.close()
 
 
-
 def general(conf: dict, dbname: str):
     # Vérif que la base existe sinon la créer
     result = check_db(conf, dbname)
@@ -141,7 +142,7 @@ def general(conf: dict, dbname: str):
         print("La base n'a pas pu recevoir l'extension vector, on sort")
         exit(1)
 
-    # vérifie que la table a été crée sinon la crée
+    # vérifie que la table a été créée sinon la crée
     result = create_chunks_table(conf, dbname)
     if result:
         print("La table embeddings existe.")
