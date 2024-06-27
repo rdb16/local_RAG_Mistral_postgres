@@ -1,4 +1,4 @@
-
+### python 3.12
 ### installer sur votre ordinateur le serveur Ollama
     ## télécharger le LLM de mistral ou llama3, de manière à ce que les traitements restent en interne
 ### Pour l'embedding le choix se fait avec le fichier get_embedding_function.py
