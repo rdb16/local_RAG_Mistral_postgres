@@ -1,32 +1,39 @@
 ### python 3.12
+
+### configurer un virtual env dans le dossier du projet avec cette version de python
+    ## et lancer pip install -r requirements.txt pour les dépendances
+
 ### installer sur votre ordinateur le serveur Ollama
-    ## télécharger le LLM de mistral ou llama3, de manière à ce que les traitements restent en interne
+    ## télécharger le LLM de mistral et llama3, de manière à ce que les traitements restent en interne
+
 ### Pour l'embedding le choix se fait avec le fichier get_embedding_function.py
-    ## soit utiliser le modèle d'embeddings d"AWS titan ou autre moteur d'embedding
+    ## soit utiliser le modèle d'embeddings d"AWS titan ou autre moteur d'embedding,
+    ## tel cohere-multilingual en eu-west-3
     ## soit un modèle local
 
-
-### à la racine du projet créer un dossier config
-
-### Remplir le fichier de configuration config.json et l'enregistrer dans le dossier config
-{
-  "IMAC_CONNECTION_STRING": "",
-  "DATA_PATH": "./data-xxx",
-  "DB_HOST": "",
-  "DB_PORT": 5432,
-  "DB_USER": "",
-  "DB_PASS": "",
-  "DB_NAME": "postgres",
-  "EMBEDDINGS_ENGINE": "local"  # sur le serveur interne Ollama ou "us-east-1" pour Titan1
-                                # ou cohere-multilingual-v3 sur "eu-west-3"
-  ......
-}
+### à la racine du projet créer un dossier config et un fichier config.json
+    ## contenant les credentials de la base PG >= 14
+    ## le chemin du dossier des pdfs à traiter
+    ## le choix du moteur d'embedding
+    ##  exemple
+    {
+      "IMAC_CONNECTION_STRING": "",
+      "DATA_PATH": "./data-xxx",
+      "DB_HOST": "",
+      "DB_PORT": 5432,
+      "DB_USER": "",
+      "DB_PASS": "",
+      "DB_NAME": "postgres",
+      "EMBEDDINGS_ENGINE": "local"  # sur le serveur interne Ollama ou "us-east-1" pour Titan1
+                                    # ou cohere-multilingual-v3 sur "eu-west-3"
+      ......
+    }
 
 ### la base vectorielle sera crée sur un serveur Postgresql version >= 14
     ## le programme se charge de créer la base si elle n'existe pas
     ## et de rajouter l'extension vector
-    ## enfin de générer une table embeddings avec les champs définis ci-après
-    ## est générée aussi un table pdf_file dont la fk est reprise dans la table embeddings,
+    ## enfin de générer une table embeddings, si elle n'existe pas, avec les champs définis ci-après
+    ## est générée aussi un table pdf_file, si elle n'existe pas, dont la fk est reprise dans la table embeddings,
         ## avec une colonne sha1 et la date de création extraite du pdf
         TODO on vérifiera que pour un pdf donné la date de création est supérieure
          et que le sha1 est différent pour remplacer les chunks dans la base
