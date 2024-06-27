@@ -3,7 +3,6 @@ import time
 import psycopg
 from langchain_core.prompts import PromptTemplate
 from langchain_community.llms.ollama import Ollama
-
 from embedding_function import get_embedding_function
 from utils import load_env, db_name
 

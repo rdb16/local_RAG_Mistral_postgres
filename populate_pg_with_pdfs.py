@@ -1,24 +1,12 @@
-import argparse
 import os
 import shutil
-import sys
 from pathlib import Path
-
 from langchain_community.document_loaders import PyPDFDirectoryLoader
 from PyPDF2.errors import PdfReadError
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain.schema.document import Document
 import time
 import psycopg
-from psycopg import OperationalError
-import ast
-import pgvector
-import math
-from pgvector.psycopg import register_vector
-from utils import load_env, chunk_ids
+from utils import load_env, chunk_ids, check_pg
 from embedding_function import get_embedding_function
-from utils import load_env
-from utils import check_pg
 from utils.insert_into_db import insert_pdf_file
 from utils.pdf_list import get_pdf_from_data, get_pdf_list_from_db, get_filtered_list
 from utils import spliter
