@@ -2,7 +2,7 @@ import hashlib
 from PyPDF2 import PdfReader
 import os
 
-from utils import parse_pdf_date
+from utils import parse_pdf_date, parquet_date_and_sha1
 
 
 def get_pdf_details(file_path):
@@ -32,3 +32,11 @@ def get_pdf_details(file_path):
     format_date = parse_pdf_date.parse(creation_date)
 
     return format_date, sha1_hexdigest
+
+
+def get_parquet_details(file_path):
+    # Check if the file exists
+    if not os.path.exists(file_path):
+        return "File does not exist", None
+    # vérification qu'il existe une clé "creation_date" dans les metadatas
+    # sinon on prend le timestamp de maintenant

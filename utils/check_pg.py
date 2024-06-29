@@ -1,10 +1,11 @@
 import psycopg as pg
+
 import pgvector
 from pgvector.psycopg import register_vector
 
 
 def check_pg(conf: dict) -> bool:
-    connection_string = conf['IMAC_CONNECTION_STRING'] + "postgres"
+    connection_string = conf['CONNECTION_STRING'] + "postgres"
     try:
         pg.connect(connection_string)
         return True
@@ -13,7 +14,7 @@ def check_pg(conf: dict) -> bool:
 
 
 def check_db(conf: dict, dbname: str) -> bool:
-    connection_string = conf['IMAC_CONNECTION_STRING'] + "postgres"
+    connection_string = conf['CONNECTION_STRING'] + "postgres"
     conn = pg.connect(connection_string)
     cur = conn.cursor()
     try:
@@ -28,7 +29,7 @@ def check_db(conf: dict, dbname: str) -> bool:
 
 
 def check_db_extension(conf: dict, dbname: str) -> bool:
-    connection_string = conf['IMAC_CONNECTION_STRING'] + dbname
+    connection_string = conf['CONNECTION_STRING'] + dbname
     # DEBUG
     print("connecting to", connection_string)
     conn = pg.connect(connection_string)
@@ -46,7 +47,7 @@ def check_db_extension(conf: dict, dbname: str) -> bool:
 
 
 def create_db(conf: dict, dbname: str) -> bool:
-    connection_string = conf['IMAC_CONNECTION_STRING'] + "postgres"
+    connection_string = conf['CONNECTION_STRING'] + "postgres"
     conn = pg.connect(connection_string)
     conn.autocommit = True
     cur = conn.cursor()
@@ -61,8 +62,8 @@ def create_db(conf: dict, dbname: str) -> bool:
         conn.close()
 
 
-def create_chunks_table(conf: dict, dbname: str) -> bool:
-    connection_string = conf['IMAC_CONNECTION_STRING'] + dbname
+def create_pdf_chunks_table(conf: dict, dbname: str) -> bool:
+    connection_string = conf['CONNECTION_STRING'] + dbname
     conn = pg.connect(connection_string)
     cur = conn.cursor()
     if conf["EMBEDDINGS_ENGINE"] == "us-east-1":
@@ -95,17 +96,17 @@ def create_chunks_table(conf: dict, dbname: str) -> bool:
         conn.close()
 
 
-def create_pdf_table(conf: dict, dbname: str) -> bool:
-    connection_string = conf['IMAC_CONNECTION_STRING'] + dbname
+def create_file_table(conf: dict, dbname: str) -> bool:
+    connection_string = conf['CONNECTION_STRING'] + dbname
     conn = pg.connect(connection_string)
     cur = conn.cursor()
     try:
         table_create_command = """
-                CREATE TABLE IF NOT EXISTS pdf_file (
+                CREATE TABLE IF NOT EXISTS inserted_file (
                     id bigserial primary key,
                     file_name text not null,                    
                     document_type text default 'None',
-                    file_date timestamp not null,
+                    file_date timestamp DEFAULT CURRENT_TIMESTAMP,
                     sha1 text                    
                     );
                             """
@@ -143,7 +144,7 @@ def general(conf: dict, dbname: str):
         exit(1)
 
     # vérifie que la table a été créée sinon la crée
-    result = create_chunks_table(conf, dbname)
+    result = create_pdf_chunks_table(conf, dbname)
     if result:
         print("La table embeddings existe.")
     else:

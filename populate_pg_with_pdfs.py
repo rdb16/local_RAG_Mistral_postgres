@@ -5,13 +5,11 @@ from langchain_community.document_loaders import PyPDFDirectoryLoader
 from PyPDF2.errors import PdfReadError
 import time
 import psycopg
-from utils import load_env, chunk_ids, check_pg
+from utils import load_env, chunk_ids, check_pg, init_db
 from embedding_function import get_embedding_function
-from utils.insert_into_db import insert_pdf_file
-from utils.pdf_list import get_pdf_from_data, get_pdf_list_from_db, get_filtered_list
-from utils import spliter
+from utils.file_list import get_files_from_data, get_file_list_from_db, get_filtered_list
+from utils import spliter, insert_into_db
 from utils import pdf_date_and_sha1 as pdf_metadata
-from utils import db_name
 
 
 def main():
@@ -29,56 +27,25 @@ def main():
     #  le dossier des csv pour que que tous ces sources nourrissent les vecteurs datasource
 
     # check db
-    # la base pg sera nommée comme le data_path en remplaçant data par base
-    dbname = db_name.get_name(conf)
-
-    # vérif que la base pg est installée
-    result = check_pg.check_pg(conf)
-    if result:
-        print('Connexion ok')
-    else:
-        print('Connexion KO!!!')
-        exit(1)
-
-    # vérif que la base existe
-    result = check_pg.check_db(conf, dbname)
-    if result:
-        print(f'la base {dbname} existe')
-    else:
-        print(f'la base {dbname} n\'existe pas')
-        print('Nous allons la créer')
-        result1 = check_pg.create_db(conf, dbname)
-        if result1:
-            print(f'la base {dbname} a été crée')
-        else:
-            print(f'la création de la base {dbname} est en erreur')
-            print('On sort')
-            exit(1)
-
-    # on vérifie l'extension vector
-    result = check_pg.check_db_extension(conf, dbname)
-    if result:
-        print(f'la base {dbname} a l\'extension vector')
-    else:
-        print(f'la base {dbname} refuse l\'extension vector')
+    dbname = init_db.check(conf)
 
     # on crée la table embeddings si elle n'existe pas
-    result = check_pg.create_chunks_table(conf, dbname)
+    result = check_pg.create_pdf_chunks_table(conf, dbname)
     if result:
         print(f'la table embeddings est dans la base {dbname}')
     else:
         print(f'impossible de créer la table embeddings, on sort')
         exit(1)
 
-    result = check_pg.create_pdf_table(conf, dbname)
+    result = check_pg.create_file_table(conf, dbname)
     if result:
         print(f'la table pdf_file est dans la base {dbname}')
     else:
         print(f'impossible de créer la table pdf_file, on sort')
         exit(1)
 
-    pdf_data_list = get_pdf_from_data(data_path)
-    pdf_pg_list = get_pdf_list_from_db(conf, dbname)
+    pdf_data_list = get_files_from_data(data_path, ".pdf")
+    pdf_pg_list = get_file_list_from_db(conf, dbname)
     file_to_import = get_filtered_list(pdf_pg_list, pdf_data_list)
     print("Nombre de fichiers à importer :", len(file_to_import))
 
@@ -100,7 +67,7 @@ def main():
                      "sha1": sha1
                      }
         # print(data_dico)
-        fk_pdf = insert_pdf_file(conf, dbname, data_dico)
+        fk_pdf = insert_into_db.insert(conf, dbname, data_dico)
         import_dico[file] = fk_pdf
 
     print("fk_dico: ", import_dico)

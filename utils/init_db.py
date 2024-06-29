@@ -1,19 +1,8 @@
-import time
+# check db
+from utils import db_name, check_pg
 
-from utils import load_env, db_name
 
-
-def main():
-    start_time = time.time()
-    ###############################################################################
-    # Setup your database to insert embeddings
-    ###############################################################################
-
-    # Get openAI api key by reading local .env file
-    conf = load_env.load('config/config.json')
-    data_path = conf['DATA_PATH']
-
-    # check db
+def check(conf: dict) -> str:
     # la base pg sera nommée comme le data_path en remplaçant data par base
     dbname = db_name.get_name(conf)
     # vérif que la base pg est installée
@@ -46,3 +35,13 @@ def main():
     else:
         print(f'la base {dbname} refuse l\'extension vector')
 
+    # quel que soit le format des fichiers sources, on crée la base
+    # pour suivre les fichiers traités
+    result = check_pg.create_file_table(conf, dbname)
+    if result:
+        print(f'la table pdf_file est dans la base {dbname}')
+    else:
+        print(f'impossible de créer la table pdf_file, on sort')
+        exit(1)
+
+    return dbname
