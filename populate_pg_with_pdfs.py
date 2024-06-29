@@ -101,7 +101,7 @@ def main():
         print(e)
 
     # connection
-    conn_string = conf['IMAC_CONNECTION_STRING'] + dbname
+    conn_string = conf['CONNECTION_STRING'] + dbname
     conn = psycopg.connect(conn_string)
 
     # Calculate Page IDs.
