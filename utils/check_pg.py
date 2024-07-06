@@ -98,8 +98,7 @@ def create_pdf_chunks_table(conf: dict, dbname: str) -> bool:
 
 def create_file_table(conf: dict, dbname: str) -> bool:
     connection_string = conf['CONNECTION_STRING'] + dbname
-    conn = pg.connect(connection_string)
-    cur = conn.cursor()
+
     try:
         table_create_command = """
                 CREATE TABLE IF NOT EXISTS inserted_file (

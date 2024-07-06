@@ -18,7 +18,7 @@ PROMPT_TEMPLATE = """
 
 
 def query_rag(query_txt: str, conf: dict) -> tuple:
-    conn_string = conf["IMAC_CONNECTION_STRING"]
+    conn_string = conf["CONNECTION_STRING"]
     dbname = db_name.get_name(conf)
     conn_string = conn_string + dbname
     print("conn_string", conn_string)

@@ -20,7 +20,8 @@ def get_metadata(path):
             # TODO Trouver la date avec la clé creation_date, en attendant on renvoie None
             creation_date = None
         print()  # Ajoute un espace pour la clarté entre les colonnes
-    else : creation_date = None
+    else:
+        creation_date = None
 
     # Calculate SHA-1 hash of the file
     sha1_hash = hashlib.sha1()

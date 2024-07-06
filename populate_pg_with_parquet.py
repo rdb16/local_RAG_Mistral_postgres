@@ -58,7 +58,7 @@ def main():
         # on insert dans la table inserted_file
         pk_parquet = insert_into_db.insert(conf, dbname, data_dico)
 
-        # on insert dans la table movie les data
+        # on crée la table movies avec son schéma
         sql = parquet_to_sql.create_sql(path)
         print(sql)
 
@@ -76,12 +76,13 @@ def main():
         # nom de la table crée :
         table_created = path.split('/')[-1].replace('.parquet', '')
 
-        # insert des data
+        # Maintenant on va insérer les data
         df = pd.read_parquet(path)
         with conn.cursor() as cur:
             placeholders = ','.join(['%s'] * len(df.columns))
             columns = ','.join(df.columns)
             sql = f"INSERT INTO {table_created} ({columns}) VALUES ({placeholders})"
+            # cast est un mot réservé que l'on échappe sous postgres avec "doubles quotes
             sql = sql.replace('cast', '"cast"')
 
             try:
