@@ -115,7 +115,7 @@ def main():
     for chunk in chunks_with_ids:
         ids = chunk.metadata["id"]
         content = chunk.page_content
-        pdf_name = chunk.metadata["source"].split("/")[1]
+        pdf_name = chunk.metadata["source"].split("/")[-1]
         fk_pdf = import_dico[pdf_name]
         print("file_name", pdf_name, "fk: ", fk_pdf)
         txt = chunk.page_content
