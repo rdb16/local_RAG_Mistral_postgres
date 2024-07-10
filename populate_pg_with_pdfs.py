@@ -61,11 +61,17 @@ def main():
     for file in file_to_import:
         path_file = os.path.join(data_path, file)
         file_date, sha1 = pdf_metadata.get_pdf_details(path_file)
-        data_dico = {"file_name": file,
-                     "file_date": file_date,
-                     "document_type": "test",
-                     "sha1": sha1
-                     }
+        if file_date:
+            data_dico = {"file_name": file,
+                         "file_date": file_date,
+                         "document_type": "test",
+                         "sha1": sha1
+                         }
+        else:
+            data_dico = {"file_name": file,
+                         "document_type": "test",
+                         "sha1": sha1
+                         }
         # print(data_dico)
         fk_pdf = insert_into_db.insert(conf, dbname, data_dico)
         import_dico[file] = fk_pdf
