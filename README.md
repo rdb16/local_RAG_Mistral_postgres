@@ -29,7 +29,7 @@
       ......
     }
 
-### la base vectorielle sera crée sur un serveur Postgresql version >= 14
+### la base vectorielle sera crée sur un serveur Postgresql version >= 14, ici 16
     ## le programme se charge de créer la base si elle n'existe pas
     ## et de rajouter l'extension vector
     ## enfin de générer une table embeddings, si elle n'existe pas, avec les champs définis ci-après
@@ -40,7 +40,7 @@
 
 ### populate.py:
  ## liste les fichiers trouvés dans le dossier data spécifié dans le fichier de conf
- ## liste les pdf déjà importés dans la base
+ ## liste les pdf déjà importés dans la table inserted_file de la base correspondante 
  ## calcule la liste restreinte des nouveaux pdf à importer
  ## calcul l'embedding de ces fichiers et calcule l'index et génère les champs pour l'import
     # le nom du pdf
@@ -68,6 +68,7 @@
  Ce modèle est conçu pour des tâches telles que la récupération de texte, la similarité sémantique
  et le clustering, avec une longueur maximale de texte d'entrée de 8 000 tokens
  et une longueur maximale de vecteur de sortie de 1 536 dimensions.
+Dans la région eu-west-3 c'est cohere, qui fonctionne bien.
 
 
  ### query_rag_using_pg

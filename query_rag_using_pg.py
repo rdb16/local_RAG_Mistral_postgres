@@ -22,7 +22,7 @@ def query_rag(query_txt: str, conf: dict) -> tuple:
     dbname = db_name.get_name(conf)
     conn_string = conn_string + dbname
     print("conn_string", conn_string)
-    print("engine", conf["EMBEDDINGS_ENGINE"])
+    print("embedding engine", conf["EMBEDDINGS_ENGINE"])
 
     embedding_fn = get_embedding_function(conf["EMBEDDINGS_ENGINE"])
 

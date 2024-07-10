@@ -6,7 +6,7 @@ def calculate(chunks):
     current_chunk_index = 0
 
     for chunk in chunks:
-        source = chunk.metadata.get("source")
+        source = chunk.metadata.get("source").split("/")[1]
         page = chunk.metadata.get("page") + 1 # pour éviter la page 0
         current_page_id = f"{source}:{page}"
 
